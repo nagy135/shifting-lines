@@ -1,17 +1,16 @@
-import { CSSProperties, FC } from "react";
+import { cellHeight, cellSize, REFRESH_WAIT } from "@constants/global";
+import { CSSProperties, FC, useCallback, useState } from "react";
 
 interface IShiftingLines {
   grid: number[][];
   colorSetup: TColorSetup;
 }
 
-const cellSize = 20;
-
 const style: CSSProperties = {
   position: "absolute",
   backgroundColor: "white",
   width: cellSize,
-  height: cellSize,
+  height: cellHeight,
 };
 
 export type TColorSetup = {
@@ -54,17 +53,32 @@ const getCellColor = (
   return colorChoice;
 };
 
-const globalOffset = [40, 40];
+const globalOffset = [20, 20];
 
 const ShiftingLines: FC<IShiftingLines> = ({ grid, colorSetup }) => {
+  const [animating, setAnimating] = useState(false);
+  const [offsets, setOffsets] = useState(grid.map(() => 0));
+
+  const maxWidth = cellSize*grid[0].length;
+
+  const handleClick = useCallback(() => {
+    if (animating) return;
+    setAnimating(true);
+
+    setInterval(() => {
+      setOffsets((prev) => prev.map((e, i) => (i % 2 ? e + 1 : e - 1)));
+    }, REFRESH_WAIT);
+  }, [offsets, animating]);
+
   return (
     <div
       className="app"
       style={{
         backgroundColor: colorSetup.background,
         width: grid[0].length * cellSize + globalOffset[0],
-        height: grid.length * 2 * cellSize + globalOffset[1],
+        height: grid.length * 2 * cellHeight + globalOffset[1],
       }}
+      onClick={() => handleClick()}
     >
       {grid.map((row, y) => {
         return (
@@ -74,13 +88,15 @@ const ShiftingLines: FC<IShiftingLines> = ({ grid, colorSetup }) => {
               const hasLeftSibling = siblingExists(grid, x - 1, y);
               const color = getCellColor(x, y, val, colorSetup);
 
+              const newX = (x * cellSize + globalOffset[0] + offsets[y]) % maxWidth;
+
               return (
                 <div
                   key={`cell-${x}x${y}`}
                   style={{
                     ...style,
-                    top: y * cellSize + cellSize * y + globalOffset[1],
-                    left: x * cellSize + globalOffset[0],
+                    top: 2*y * cellHeight + globalOffset[1],
+                    left: newX > 0 ? newX : newX+maxWidth,
                     borderTopLeftRadius: !hasLeftSibling ? 15 : undefined,
                     borderBottomLeftRadius: !hasLeftSibling ? 15 : undefined,
 
