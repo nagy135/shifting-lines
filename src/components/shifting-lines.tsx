@@ -56,13 +56,13 @@ const ShiftingLines: FC<IShiftingLines> = ({ grid, colorSetup }) => {
 
   const maxWidth = cellSize * grid[0].length;
 
-  const intervalHandleRef = useRef<NodeJS.Timer | null>(null)
+  const intervalHandleRef = useRef<NodeJS.Timer | null>(null);
   const handleClick = useCallback(() => {
     if (animating && intervalHandleRef.current) {
       setAnimating(false);
       clearInterval(intervalHandleRef.current);
       return;
-    };
+    }
     setAnimating(true);
 
     intervalHandleRef.current = setInterval(() => {
@@ -71,7 +71,17 @@ const ShiftingLines: FC<IShiftingLines> = ({ grid, colorSetup }) => {
   }, [offsets, animating]);
 
   return (
-    <div onClick={() => handleClick()}>
+    <div
+      style={{
+        width: grid[0].length * cellSize,
+        height: grid.length * 1.5 * cellHeight,
+        maskImage:
+          "radial-gradient(circle, rgba(0,0,0,1) 0%,rgba(0,0,0,1) 65%,rgba(0,0,0,0) 71%, rgba(0,0,0,0) 100%)",
+        WebkitMaskImage:
+          "radial-gradient(circle, rgba(0,0,0,1) 0%,rgba(0,0,0,1) 65%,rgba(0,0,0,0) 71%, rgba(0,0,0,0) 100%)",
+      }}
+      onClick={() => handleClick()}
+    >
       <svg
         width={grid[0].length * cellSize + globalOffset[0]}
         height={grid.length * 2 * cellHeight + globalOffset[1]}
@@ -94,6 +104,7 @@ const ShiftingLines: FC<IShiftingLines> = ({ grid, colorSetup }) => {
                 if (hasRightSibling && hasLeftSibling) {
                   return (
                     <path
+                      key={`cell-${x}x${y}`}
                       d={`
 M${finalX - RADIUS},${finalY} 
 h${cellSize} 
@@ -107,6 +118,7 @@ z`}
                 } else if (hasRightSibling) {
                   return (
                     <path
+                      key={`cell-${x}x${y}`}
                       d={`
 M${finalX},${finalY} 
 h${cellSize - RADIUS} 
@@ -122,6 +134,7 @@ z`}
                 } else if (hasLeftSibling) {
                   return (
                     <path
+                      key={`cell-${x}x${y}`}
                       d={`
 M${finalX - RADIUS},${finalY} 
 h${cellSize - RADIUS} 
